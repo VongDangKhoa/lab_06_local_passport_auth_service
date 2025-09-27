@@ -1,121 +1,83 @@
-# lab_06_local_passport_auth_service
+lab_06_local_passport_auth_service
 
-Minimal Node.js + Express example demonstrating local authentication with Passport.js (passport-local) and sessions.
+Hướng dẫn kiểm thử project `local_passport_auth_service` (Passport local strategy + sessions).
 
-This project implements:
+File `README.md` này chứa các bước test theo đúng thứ tự bạn muốn, kèm ảnh minh họa từ thư mục `img/`.
 
-- User registration (passwords hashed with `bcryptjs`)
-- Login via Passport local strategy (server-side sessions)
-- Protected profile endpoint requiring an authenticated session
-- Logout that ends the session
+## Mô tả ngắn
 
-## Project layout
+Project sử dụng Passport (passport-local) để xác thực bằng username/password và lưu trạng thái bằng session. MongoDB lưu users.
 
-- `app.js` - app entrypoint, session and passport initialization
-- `config/passport.js` - passport local strategy, serialize/deserialize
-- `routes/auth.js` - register, login, profile, logout routes
-- `models/User.js` - Mongoose user model with password hashing
-- `package.json` - dependencies
+## Chuẩn bị
 
-## Requirements
-
-- Node.js (>= 16 recommended)
-- npm (or yarn)
-- MongoDB running locally at `mongodb://127.0.0.1:27017`
-
-By default the app connects to the `passport_local_demo` database and listens on port 3000.
-
-## Install
-
-From the `local_passport_auth_service` folder run:
+- Cài Node.js và npm
+- Chạy MongoDB cục bộ (mặc định kết nối tới `mongodb://127.0.0.1:27017/passport_local_demo`)
+- Mở PowerShell tại thư mục `local_passport_auth_service` và cài dependencies nếu cần:
 
 ```powershell
 cd local_passport_auth_service
 npm install
 ```
 
-## Run
+## Các bước test (kèm ảnh)
 
-Start the server:
+### Bước 1 — Khởi động server
+
+Chạy ứng dụng:
 
 ```powershell
 node app.js
 ```
 
-You should see:
+Ảnh minh họa khi server khởi động (MongoDB connected / Server running):
 
-```
-MongoDB connected
-Server running on http://localhost:3000
-```
+![Bước 1 - Khởi chạy server](img/image1.png)
 
-## API Endpoints
+### Bước 2 — Test Register (POST /auth/register)
 
-Base path: `/auth`
+Gửi request để đăng ký user mới.
 
-- POST `/auth/register`
-  - Body (JSON): `{ "username": "<username>", "password": "<password>" }`
-  - Creates a new user (password hashed) and returns a success message.
-
-- POST `/auth/login`
-  - Body (form or JSON): `{ "username": "<username>", "password": "<password>" }`
-  - Uses Passport local strategy. On success, a session is created and subsequent requests (with the session cookie) will be authenticated.
-
-- GET `/auth/profile`
-  - Protected endpoint. Returns the authenticated user's data (passport attaches `req.user`). Returns 401 if not authenticated.
-
-- GET `/auth/logout`
-  - Logs out the current user (calls `req.logout`) and returns a confirmation.
-
-## Example (curl, PowerShell)
-
-1) Register:
+Ví dụ (PowerShell):
 
 ```powershell
 curl -X POST http://localhost:3000/auth/register -H "Content-Type: application/json" -d '{"username":"bob","password":"secret"}'
 ```
 
-2) Login (save cookie):
+Ảnh minh họa gửi request register và phản hồi:
+
+![Bước 2 - request register (1)](img/image2.png)
+
+![Bước 2 - request register (2)](img/image3.png)
+
+### Bước 3 — Test Login (POST /auth/login)
+
+Gửi request login; lưu cookie để sử dụng cho các request bảo vệ.
 
 ```powershell
 curl -c cookies.txt -X POST http://localhost:3000/auth/login -H "Content-Type: application/json" -d '{"username":"bob","password":"secret"}'
 ```
 
-3) Access profile with cookie:
+Ảnh minh họa login thành công:
+
+![Bước 3 - Login](img/image4.png)
+
+### Bước 4 — (Tùy chọn) Truy cập profile / Logout
+
+Sau khi login và có cookie, bạn có thể truy cập route bảo vệ `/auth/profile`:
 
 ```powershell
 curl -b cookies.txt http://localhost:3000/auth/profile
 ```
 
-4) Logout:
+Và logout:
 
 ```powershell
 curl -b cookies.txt http://localhost:3000/auth/logout
 ```
 
-If you prefer, use Postman/Insomnia for cookie management and testing.
+## Ghi chú
 
-## Configuration notes
+- Các giá trị kết nối và session secret hiện được hard-coded trong `app.js`. Nên chuyển thành biến môi trường cho production.
+- `bcryptjs` được sử dụng để hash password. Passport quản lý serialize/deserialize và session.
 
-- The MongoDB URI and session secret are hard-coded in `app.js`:
-  - MongoDB: `mongodb://127.0.0.1:27017/passport_local_demo`
-  - Session secret: `mysecretkey`
-
-- For production, move these values to environment variables and enable secure cookie options.
-
-## Security considerations
-
-- Passwords are hashed using `bcryptjs` before saving to the database.
-- The sample uses express-session with in-memory store (default). For production, use a persistent session store (e.g., `connect-mongo`).
-- Add input validation and rate limiting on auth endpoints before production use.
-
-## Possible improvements
-
-- Add `dotenv` and a `.env.example` so configuration is not hard-coded.
-- Replace the default session store with `connect-mongo` or Redis.
-- Add CSRF protection and helmet for common security headers.
-- Add unit/integration tests for auth flows.
-
-## License
-
-ISC
+Nếu bạn muốn, tôi có thể thêm script PowerShell tự động chạy toàn bộ flow (register → login → profile → logout) và lưu cookies. Nói mình biết nếu muốn mình làm thêm.

@@ -80,4 +80,3 @@ curl -b cookies.txt http://localhost:3000/auth/logout
 - Các giá trị kết nối và session secret hiện được hard-coded trong `app.js`. Nên chuyển thành biến môi trường cho production.
 - `bcryptjs` được sử dụng để hash password. Passport quản lý serialize/deserialize và session.
 
-Nếu bạn muốn, tôi có thể thêm script PowerShell tự động chạy toàn bộ flow (register → login → profile → logout) và lưu cookies. Nói mình biết nếu muốn mình làm thêm.
